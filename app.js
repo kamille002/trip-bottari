@@ -1,7 +1,7 @@
 /* 여행 보따리 · TRIP BOTTARI */
 (function () {
   'use strict';
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
   var CFG = window.TB_CONFIG || {};
   var $ = function (id) { return document.getElementById(id); };
 
@@ -37,7 +37,8 @@
       andTitle: '홈 화면에 추가', and1: '브라우저 오른쪽 위 ⋮ 메뉴를 누르세요', and2: '"홈 화면에 추가" 또는 "앱 설치"를 고르세요',
       inTitle: '여기서는 설치가 안 돼요', inBody: '카카오톡·인스타그램 같은 앱 안에서 열린 화면이에요. 사파리나 크롬에서 열어 주세요.', openExt: '다른 브라우저로 열기', copy: '주소 복사', copied: '주소를 복사했어요',
       pcTitle: '휴대폰용 앱이에요', pcBody: '휴대폰에서 이 주소를 열어 홈 화면에 추가해 주세요.', doneTitle: '이미 홈 화면 앱으로 쓰고 있어요', ok: '알겠어요',
-      offlineNow: '오프라인이에요 · 마지막 환율로 계산해요'
+      offlineNow: '오프라인이에요 · 마지막 환율로 계산해요',
+      sameCur: '내 통화 그대로 · 환산 없이 바로 담아요'
     },
     en: {
       app: 'Trip Bottari', reset: 'Clear', local: 'Local amount', home: 'Home currency', pack: 'Pack it',
@@ -69,7 +70,8 @@
       andTitle: 'Add to home screen', and1: 'Open the browser menu ⋮ at the top right', and2: 'Choose "Add to Home screen" or "Install app"',
       inTitle: 'Can’t install from here', inBody: 'This page is open inside another app. Please open it in Safari or Chrome.', openExt: 'Open in browser', copy: 'Copy link', copied: 'Link copied',
       pcTitle: 'Made for phones', pcBody: 'Open this address on your phone and add it to the home screen.', doneTitle: 'You’re already using the app', ok: 'Got it',
-      offlineNow: 'You’re offline · using the last saved rate'
+      offlineNow: 'You’re offline · using the last saved rate',
+      sameCur: 'Your home currency · packed as is'
     }
   };
 
@@ -159,7 +161,9 @@
       return { perUsd: m, date: date };
     }).catch(function () {
       return fetchJSON('https://api.frankfurter.dev/v1/latest?base=USD').then(function (j) {
-        var m = Object.assign({ USD: 1 }, j.rates || {}); return { perUsd: m, date: j.date || '' };
+        var m = Object.assign({ USD: 1 }, (j && j.rates) || {});
+        if (Object.keys(m).length < 10) throw new Error('few');
+        return { perUsd: m, date: (j && j.date) || '' };
       });
     }).then(function (r) {
       if (RATES && RATES.perUsd) { Object.keys(RATES.perUsd).forEach(function (k) { if (!r.perUsd[k]) r.perUsd[k] = RATES.perUsd[k]; }); }
@@ -292,6 +296,10 @@
     $('localLbl').textContent = T.local + ' · ' + S.cur;
     $('homeLbl').textContent = T.home + ' · ' + S.home;
     $('localTxt').textContent = localDisplay();
+    var same = S.cur === S.home;
+    $('convDiv').hidden = same; $('convBox').hidden = same; $('sameNote').hidden = !same;
+    $('sameNote').textContent = T.sameCur;
+    document.querySelector('.calc').classList.toggle('same', same);
     var v = parseFloat(amt) || 0;
     var h = convert(v, S.cur, S.home);
     $('homeTxt').textContent = h == null ? '—' : fmt(h, S.home);
@@ -329,7 +337,6 @@
     var sel = curMode === 'home' ? S.home : (curMode === 'entry' ? entryState.cur : S.cur);
     var box = $('curList'); box.textContent = '';
     allCodes().forEach(function (code) {
-      if (curMode === 'travel' && code === S.home) return;
       var cc = ccOf(code);
       var hay = [code, curName(code, 'ko'), curName(code, 'en'), regName(cc, 'ko'), regName(cc, 'en')].join(' ').toLowerCase();
       if (q && hay.indexOf(q) < 0) return;
@@ -343,7 +350,7 @@
     if (!box.firstChild) box.appendChild(el('div', { class: 'empty', text: '—' }));
   }
   function pickCur(code) {
-    if (curMode === 'home') { S.home = code; if (S.cur === code) S.cur = code === 'USD' ? 'EUR' : 'USD'; saveSettings(); }
+    if (curMode === 'home') { S.home = code; saveSettings(); }
     else if (curMode === 'travel') { if (code !== S.cur) amt = '0'; S.cur = code; saveSettings(); }
     if (curPick) curPick(code);
     closeSheet('curSheet'); renderAll();

@@ -1,5 +1,5 @@
 /* 여행 보따리 오프라인 작동 */
-var VERSION = 'tb-1.0.0';
+var VERSION = 'tb-1.0.1';
 var SHELL = ['/', '/app.js', '/config.js', '/manifest.webmanifest', '/vendor/leaflet.js', '/vendor/leaflet.css',
   '/icons/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
 var TILE_LIMIT = 400;
@@ -44,6 +44,7 @@ self.addEventListener('fetch', function (e) {
   }
 
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.indexOf('/_vercel/') === 0) return;
 
   // 페이지: 네트워크 먼저(새 버전 반영), 안 되면 저장본
   if (req.mode === 'navigate') {
