@@ -1,7 +1,7 @@
 /* 여행 보따리 · TRIP BOTTARI */
 (function () {
   'use strict';
-  var VERSION = '1.0.1';
+  var VERSION = '1.0.2';
   var CFG = window.TB_CONFIG || {};
   var $ = function (id) { return document.getElementById(id); };
 

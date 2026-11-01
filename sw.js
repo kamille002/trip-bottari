@@ -1,5 +1,5 @@
 /* 여행 보따리 오프라인 작동 */
-var VERSION = 'tb-1.0.1';
+var VERSION = 'tb-1.0.2';
 var SHELL = ['/', '/app.js', '/config.js', '/manifest.webmanifest', '/vendor/leaflet.js', '/vendor/leaflet.css',
   '/icons/favicon.svg', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
 var TILE_LIMIT = 400;
